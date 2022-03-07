@@ -5,16 +5,18 @@ from src.api import schemas
 from src.api import models
 from src.api.database import get_db
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/posts", tags=["posts"]
+)
 
 
-@router.get("/posts", response_model=List[schemas.Response])
+@router.get("/", response_model=List[schemas.Response])
 async def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     return posts
 
 
-@router.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.Response)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Response)
 def create_posts(post: schemas.Post, db: Session = Depends(get_db)):
     post = models.Post(**post.dict())
     db.add(post)
@@ -23,7 +25,7 @@ def create_posts(post: schemas.Post, db: Session = Depends(get_db)):
     return post
 
 
-@router.get("/posts/{id}")
+@router.get("/{id}")
 def get_post(id: int, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
@@ -31,7 +33,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
     return post
 
 
-@router.delete("/posts/id", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(id: int, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
     if post.first() == None:
@@ -40,7 +42,7 @@ async def delete_post(id: int, db: Session = Depends(get_db)):
     db.commit()
 
 
-@router.put("/posts/{id}", response_model=schemas.Response)
+@router.put("/{id}", response_model=schemas.Response)
 def update_post(id: int, update: schemas.Post, db: Session = Depends(get_db)):
     post_query = db.query(models.Post).filter(models.Post.id == id).first()
     post = post_query.first()
